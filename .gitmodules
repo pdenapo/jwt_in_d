@@ -1,0 +1,3 @@
+[submodule "jwtd"]
+	path = jwtd
+	url = https://github.com/pdenapo/jwtd.git

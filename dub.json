@@ -1,0 +1,16 @@
+{
+	"name": "jwt_in_d",
+	"authors": [
+		"Pablo De Napoli"
+	],
+	"dependencies": {
+		"jwt_in_d:jwtd": "~>0.4.4"
+	},
+	"subConfigurations": {
+		"jwt_in_d:jwtd": "phobos"
+	},
+	"subPackages": ["jwtd"],
+	"description": "Prueba para implementar jwt en D",
+	"copyright": "Copyright © 2019, Pablo De Napoli",
+	"license": "MIT"
+}
