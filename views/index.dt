@@ -1,0 +1,7 @@
+doctype html
+html
+	head
+		meta(charset='utf-8')
+		title Demo site
+	body
+		p Jwt in D example server running at http://#{my_url}:#{my_port}

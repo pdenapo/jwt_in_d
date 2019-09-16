@@ -4,11 +4,14 @@
 		"Pablo De Napoli"
 	],
 	"dependencies": {
-		"jwt_in_d:jwtd": "~>0.4.4"
+		"jwt_in_d:jwtd": "~>0.4.4",
+		"vibe-d:core": "~>0.8.5",
+		"vibe-d:http": "~>0.8.5",
+		"vibe-d:web": "~>0.8.5"
 	},
 	"subConfigurations": {
 		"jwt_in_d:jwtd": "phobos"
-	},
+	},	
 	"subPackages": ["jwtd"],
 	"description": "Prueba para implementar jwt en D",
 	"copyright": "Copyright © 2019, Pablo De Napoli",
