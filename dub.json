@@ -3,17 +3,54 @@
 	"authors": [
 		"Pablo De Napoli"
 	],
+	"targetType": "none",
 	"dependencies": {
-		"jwt_in_d:jwtd": "~>0.4.4",
-		"vibe-d:core": "~>0.8.5",
-		"vibe-d:http": "~>0.8.5",
-		"vibe-d:web": "~>0.8.5"
+		"jwt_in_d:server": "*",
+		"jwt_in_d:client": "*"
 	},
-	"subConfigurations": {
-		"jwt_in_d:jwtd": "phobos"
-	},	
-	"subPackages": ["jwtd"],
-	"description": "Prueba para implementar jwt en D",
+	"subPackages": [
+		"jwtd",
+		{
+			"name": "server",
+			"targetType": "executable",
+			"targetName": "server",
+			"sourcePaths": [
+				"server_src"
+			],
+			"importPaths": [
+				"server_src"
+			],
+			"dependencies": {
+				"jwt_in_d:jwtd": "~>0.4.4",
+				"vibe-d:core": "~>0.8.5",
+				"vibe-d:http": "~>0.8.5",
+				"vibe-d:web": "~>0.8.5",
+				"vibe-d:utils": "~>0.8.5"
+			},
+			"subConfigurations": {
+				"jwt_in_d:jwtd": "phobos"
+			}
+		},
+		{
+			"name": "client",
+			"targetType": "executable",
+			"targetName": "client",
+			"sourcePaths": [
+				"client_src"
+			],
+			"importPaths": [
+				"client_src"
+			],
+			"dependencies": {
+				"jwt_in_d:server": "*",
+				"vibe-d:core": "~>0.8.5",
+				"vibe-d:http": "~>0.8.5",
+				"vibe-d:web": "~>0.8.5",
+				"vibe-d:utils": "~>0.8.5"
+			}
+		}
+	],
+	"description": "Test on using jwt to protect an API in D",
 	"copyright": "Copyright © 2019, Pablo De Napoli",
 	"license": "MIT"
 }

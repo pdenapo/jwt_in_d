@@ -1,6 +1,8 @@
 
 /* This is a proof of concept of how to implement jwt  in D */
 
+module server;
+
 import jwtd.jwt;
 import std.stdio;
 import std.datetime.date;
@@ -8,34 +10,35 @@ import std.datetime.systime;
 import std.json;
 import std.conv;
 import core.time;
+import std.array;
 
 import vibe.core.core;
 import vibe.core.log;
-import vibe.http.server;
 import vibe.http.router;
+import vibe.http.server;
 import vibe.web.web;
 import vibe.web.rest;
-
+import vibe.inet.url;
+import vibe.data.json;
 
 const string  secret = "My Token Generation Secret Key";
 
-const my_url = "127.0.0.1";
+const my_address = "127.0.0.1";
 
 const int my_port= 3000;
-
-
 
 struct User
 {
  string id;
 }
 
-interface APIRoot {
+interface API_Interface {
  string getMessage();
+ Json getJsonMessage();
 }
 
 
-class API : APIRoot
+class API:API_Interface
 {
 	
 	// Call it with http://127.0.0.1:3000/api/message 
@@ -43,7 +46,13 @@ class API : APIRoot
 	@safe override string getMessage()
 	{
 	  logInfo("get Message method called.");
-	  return "Jwt example in D";
+	  return "Jwt example in D - string";
+	}
+	
+	@safe override Json getJsonMessage()
+	{
+	  logInfo("get Message method called.");
+	  return Json("Jwt example in D - Json string");
 	}
 }
 
@@ -70,7 +79,7 @@ class WebInterface
   // GET /
   void index()
   {
-	render!("index.dt",my_url,my_port);
+	render!("index.dt",my_address,my_port);
   }
 }
 
@@ -85,11 +94,19 @@ void main()
  
  auto settings = new HTTPServerSettings;
  settings.port =  my_port;
- settings.bindAddresses = [my_url];
+ settings.bindAddresses = [my_address];
   
  auto router = new URLRouter;
  router.registerWebInterface(new WebInterface);
- router.registerRestInterface(new API(),"/api");
+ 
+ API my_API= new API();
+ auto rest_settings = new RestInterfaceSettings();
+ rest_settings.baseURL= URL("http://" ~ my_address ~ "/api");
+ 
+ router.registerRestInterface(my_API,rest_settings);
+  
+ // generates a JS file for using the API uncomment this line 
+ router.get("/api.js", serveRestJSClient!API_Interface(rest_settings));
  
  listenHTTP(settings, router);
  runApplication();	 	
