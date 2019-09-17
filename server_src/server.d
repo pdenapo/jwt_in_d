@@ -27,14 +27,21 @@ const my_address = "127.0.0.1";
 
 const int my_port= 3000;
 
+string token;
+
 struct User
 {
  string id;
 }
 
+struct SigInMessage 
+{
+ string message;
+ string token;
+}
+
 interface API_Interface {
- string getMessage();
- Json getJsonMessage();
+ SigInMessage postSignIn(string username, string password);
 }
 
 
@@ -42,18 +49,15 @@ class API:API_Interface
 {
 	
 	// Call it with http://127.0.0.1:3000/api/message 
-	
-	@safe override string getMessage()
+		
+	@safe override SigInMessage postSignIn(string username, string password)
 	{
-	  logInfo("get Message method called.");
-	  return "Jwt example in D - string";
+	  if (username == "user" && password== "secret") 
+	    return SigInMessage("Sucesfully Logged in", token);
+	  else 
+	   return SigInMessage("Invalid user/passwod comination", "");
 	}
 	
-	@safe override Json getJsonMessage()
-	{
-	  logInfo("get Message method called.");
-	  return Json("Jwt example in D - Json string");
-	}
 }
 
 
@@ -86,7 +90,7 @@ class WebInterface
 void main()
 {
  auto user = User("John");
- string token = createToken(user,10.days);
+ token = createToken(user,10.days);
  writeln("\nThe generated web token is \n");
  writeln(token);
  writeln("\nYou can test it using the debugger at https://jwt.io/#debugger-io");
@@ -101,7 +105,7 @@ void main()
  
  API my_API= new API();
  auto rest_settings = new RestInterfaceSettings();
- rest_settings.baseURL= URL("http://" ~ my_address ~ "/api");
+ rest_settings.baseURL= URL("http://" ~ my_address ~ ":3000/api");
  
  router.registerRestInterface(my_API,rest_settings);
   
