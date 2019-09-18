@@ -10,6 +10,15 @@ https://jwt.io/
 
 to learn more about jwt.
 
+The are also excelent resources in Youtube that have helped me for building
+this example program:
+
+* [What Is JWT and Why Should You Use JWT](https://www.youtube.com/watch?v=7Q17ubqLfaM)
+
+* [Course on Rest APIs with node.js+ Mongo.db by Carlos Azaustre (in Spanish) ](https://www.youtube.com/playlist?list=PLUdlARNXMVkk7E88zOrphPyGdS50Tadlr)
+
+* (Build A Node.js API Authentication With JWT  Tutorial](https://www.youtube.com/watch?v=2jqok-WgelI) 
+
 There are two programs: a server offering a Rest API and a client consuming it, both written in D using the vibe-d framework.
 
 I started also writting a node.js client but I need to fix it.
