@@ -118,6 +118,10 @@ class API:API_Interface
 	@noAuth override SigInMessage postSignIn(string username, string password)
 	{  
 	   logInfo("postSignIn method called");
+	   
+	   /* We check if the user has the right credetials. 
+	   /* Todo: implement SignUp and store the users in a database */
+	   	   
 	   if (username == "John" && password== "secret") 
 	   {
 	    auto user = User(username);

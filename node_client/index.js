@@ -12,4 +12,4 @@ var mostrar_resultado = function (r) {
 
 console.log("postSignIn Mehod:")
 
-API.postSignIn("user", "secret", mostrar_resultado)
+API.postSignIn("John", "secret", mostrar_resultado)
