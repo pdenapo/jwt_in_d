@@ -17,7 +17,7 @@ this example program:
 
 * [Course on Rest APIs with node.js+ Mongo.db by Carlos Azaustre (in Spanish) ](https://www.youtube.com/playlist?list=PLUdlARNXMVkk7E88zOrphPyGdS50Tadlr)
 
-* (Build A Node.js API Authentication With JWT  Tutorial](https://www.youtube.com/watch?v=2jqok-WgelI) 
+* [Build A Node.js API Authentication With JWT Tutorial](https://www.youtube.com/watch?v=2jqok-WgelI) 
 
 There are two programs: a server offering a Rest API and a client consuming it, both written in D using the vibe-d framework.
 
