@@ -20,7 +20,7 @@ import vibe.web.auth;
 import vibe.web.web;
 import vibe.web.rest;
 import vibe.inet.url;
-import vibe.data.json;
+//import vibe.data.json;
 
 const string server_secret_key = "My Token Generation Secret Key";
 
@@ -28,7 +28,7 @@ const my_address = "127.0.0.1";
 
 const int my_port= 3000;
 
-string token;
+const Duration token_duration = 2.seconds;
 
 struct User
 {
@@ -69,16 +69,38 @@ class API:API_Interface
 	@noRoute override AuthInfo authenticate(scope HTTPServerRequest req, scope HTTPServerResponse res)
 	{
 		logInfo("AuthInfo method called");
-		if ("AuthToken" in req.headers)
+		
+		JSONValue payload_json;
+		logInfo("Decoding jwt token");
+		try
 		{
-			logInfo("Decoding jwt token");
-			Json payload_json = decode(req.headers["AuthToken"],server_secret_key);
-			logInfo("payload=" ~ to!string(payload_json));		
-			 this.auth_info = AuthInfo(payload_json["sub"].get!string);
-			 return this.auth_info;
+		 payload_json = decode(req.headers["AuthToken"],server_secret_key);
 		}
-		else 
-			throw new HTTPStatusException(HTTPStatus.unauthorized);
+		catch (VerifyException)
+		{
+		  throw new HTTPStatusException(HTTPStatus.unauthorized,"Invalid Token");	
+		}
+			
+		logInfo("payload=" ~ to!string(payload_json));		
+				
+		 /* We check that the token has not expired */	 
+		 long currentTime_unix = Clock.currTime().toUnixTime();
+		 logInfo("currentTime_unix =" ~ to!string(currentTime_unix));
+		
+		 if ("exp" in payload_json)
+		 {
+		 	
+		 	long expiration_time = payload_json["exp"].integer; 
+		 	logInfo("expiration_time =" ~ to!string(expiration_time));
+		 	if (expiration_time<currentTime_unix)
+		 	{
+		 	 logInfo("Expired token");
+		 	 throw new HTTPStatusException(HTTPStatus.unauthorized,"Expired token");
+		 	}
+		 }
+			 
+		 	 this.auth_info = AuthInfo(payload_json["sub"].str);
+			 return this.auth_info;
 	}
 	
 	// Call it url http://127.0.0.1:3000/api/hello 
@@ -91,14 +113,15 @@ class API:API_Interface
 	 return "Hello " ~ this.auth_info.userName ~" from Jwt Example in D";
 	}
 		
+	// Method for user Sing In
 	
 	@noAuth override SigInMessage postSignIn(string username, string password)
-	{
+	{  
 	   logInfo("postSignIn method called");
 	   if (username == "John" && password== "secret") 
 	   {
 	    auto user = User(username);
-	    string token = createToken(user,10.days);
+	    string token = createToken(user,token_duration);
 	    return SigInMessage("Sucesfully Logged in", token);
 	   }
 	  else 
@@ -108,16 +131,20 @@ class API:API_Interface
 }
 
 
-string createToken(User who,  Duration expiration_time)
+string createToken(User who,  Duration expiration_duration)
 {
   JSONValue[string] payload;
   payload["sub"] = JSONValue(who.id);
   SysTime currentTime = Clock.currTime();
   payload ["iat"] =  JSONValue(currentTime.toUnixTime());
   DateTime current_date = to!DateTime(currentTime);
-  DateTime expieraton_date =current_date + expiration_time ;
-  payload["exp"] = JSONValue(to!SysTime(expieraton_date).toUnixTime());
+  if (expiration_duration)
+  {
+    DateTime expieraton_date =current_date + expiration_duration ;
+    payload["exp"] = JSONValue(to!SysTime(expieraton_date).toUnixTime());
+  }
   JSONValue payload_json= JSONValue(payload);
+  logInfo("created token" ~ to!string(payload_json));
   return encode(payload_json,server_secret_key,JWTAlgorithm.HS256);  	
 }
 
