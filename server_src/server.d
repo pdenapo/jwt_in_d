@@ -16,12 +16,13 @@ import vibe.core.core;
 import vibe.core.log;
 import vibe.http.router;
 import vibe.http.server;
+import vibe.web.auth;
 import vibe.web.web;
 import vibe.web.rest;
 import vibe.inet.url;
 import vibe.data.json;
 
-const string  secret = "My Token Generation Secret Key";
+const string server_secret_key = "My Token Generation Secret Key";
 
 const my_address = "127.0.0.1";
 
@@ -36,26 +37,72 @@ struct User
 
 struct SigInMessage 
 {
- string message;
- string token;
+ string statusMessage;
+ string AuthToken;
 }
 
+@requiresAuth
 interface API_Interface {
- SigInMessage postSignIn(string username, string password);
+ @anyAuth string getHello();	
+ @noAuth SigInMessage postSignIn(string username, string password);
+ @noRoute AuthInfo authenticate(scope HTTPServerRequest req, scope HTTPServerResponse res);
 }
 
+// If a parameter is missing, we get a message like {"statusMessage":"Missing non-optional query parameter 'authorization'."}	
 
+static struct AuthInfo {
+@safe:
+	string userName;
+
+//  You can use this to define different user roles
+//	bool isAdmin() { return this.userName == "tom"; }
+}
+
+@requiresAuth
 class API:API_Interface
 {
+	// This is useful so that all methods can access the authorization info
+	private AuthInfo auth_info;
 	
-	// Call it with http://127.0.0.1:3000/api/message 
-		
-	@safe override SigInMessage postSignIn(string username, string password)
+	// This function checks the user jwt token
+	
+	@noRoute override AuthInfo authenticate(scope HTTPServerRequest req, scope HTTPServerResponse res)
 	{
-	  if (username == "user" && password== "secret") 
+		logInfo("AuthInfo method called");
+		if ("AuthToken" in req.headers)
+		{
+			logInfo("Decoding jwt token");
+			Json payload_json = decode(req.headers["AuthToken"],server_secret_key);
+			logInfo("payload=" ~ to!string(payload_json));		
+			 this.auth_info = AuthInfo(payload_json["sub"].get!string);
+			 return this.auth_info;
+		}
+		else 
+			throw new HTTPStatusException(HTTPStatus.unauthorized);
+	}
+	
+	// Call it url http://127.0.0.1:3000/api/hello 
+
+	//If you want to pass a parameter in the header use something like @headerParam("name", "AuthUser")
+	
+	@anyAuth @safe override string getHello()
+	{
+	 logInfo("getHello method called");
+	 return "Hello " ~ this.auth_info.userName ~" from Jwt Example in D";
+	}
+		
+	
+	@noAuth override SigInMessage postSignIn(string username, string password)
+	{
+	   logInfo("postSignIn method called");
+	   if (username == "John" && password== "secret") 
+	   {
+	    auto user = User(username);
+	    string token = createToken(user,10.days);
 	    return SigInMessage("Sucesfully Logged in", token);
+	   }
 	  else 
-	   return SigInMessage("Invalid user/passwod comination", "");
+	   return SigInMessage("Invalid user/password combination", "");
 	}
 	
 }
@@ -71,9 +118,7 @@ string createToken(User who,  Duration expiration_time)
   DateTime expieraton_date =current_date + expiration_time ;
   payload["exp"] = JSONValue(to!SysTime(expieraton_date).toUnixTime());
   JSONValue payload_json= JSONValue(payload);
-  writeln("Our payload in Json is:\n");
-  writeln(payload_json);
-  return encode(payload_json,"secret",JWTAlgorithm.HS256);  	
+  return encode(payload_json,server_secret_key,JWTAlgorithm.HS256);  	
 }
 
 
@@ -89,13 +134,7 @@ class WebInterface
 
 void main()
 {
- auto user = User("John");
- token = createToken(user,10.days);
- writeln("\nThe generated web token is \n");
- writeln(token);
- writeln("\nYou can test it using the debugger at https://jwt.io/#debugger-io");
- 
- 
+  
  auto settings = new HTTPServerSettings;
  settings.port =  my_port;
  settings.bindAddresses = [my_address];
@@ -105,7 +144,7 @@ void main()
  
  API my_API= new API();
  auto rest_settings = new RestInterfaceSettings();
- rest_settings.baseURL= URL("http://" ~ my_address ~ ":3000/api");
+ rest_settings.baseURL= URL("http://" ~ my_address ~ ":" ~ to!string(my_port) ~ "/api");
  
  router.registerRestInterface(my_API,rest_settings);
   

@@ -8,4 +8,8 @@ html
 		p Jwt in D example server running at http://#{my_address}:#{my_port}
 		
 		br
-		a(href='api/message') Método getMessage
+		ul
+			li 
+				a(href="api.js") Javascript for the API
+			li
+				a(href='api/hello') Método getHello
